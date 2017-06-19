@@ -28,40 +28,6 @@ body {
 .tooltip.in {
     opacity: 0.9;
 }
-#test1 {
-    position: absolute;
-    left: 0px;
-    top: 20px;
-    border-radius: 50%;
-    width: 300px;
-    height: 300px;
-    border: 1px solid black;
-}
-#test2 {
-    position: absolute;
-    left: 300px;
-    top: 50px;
-    width: 200px;
-    height: 250px;
-    border: 1px solid black;
-}
-#test3 {
-    position: absolute;
-    left: 550px;
-    top: 0px;
-    border-radius: 50%;
-    width: 400px;
-    height: 400px;
-    border: 1px solid black;
-}
-#test4 {
-    position: absolute;
-    left: 1050px;
-    top: 25px;
-    height: 450px;
-    width: 300px;
-    border: 1px solid black;
-}
 </style>
 </head>
 <body>
@@ -79,37 +45,31 @@ body {
         { type: "polygon", points: [1050, 25, 1350, 25, 1450, 250, 1350, 475, 1050, 475, 950, 250], title: "Student 3" },
     ];
 
-    var demo1 = document.getElementById('demo1');
-
-    tooltip(demo1, targets);
+    tooltip(document.getElementById('demo1'), targets);
 
     function tooltip (container, targets) {
         if (!container || !container.querySelector) {
             return;
         }
 
-        var _previousPoint;
         var tooltip = container.querySelector('.tooltip');
         var img = container.querySelector('img');
 
         if(tooltip && img) {
             container.addEventListener("mousemove", function (event) {
-                var xScale = img.naturalWidth / container.offsetWidth;
-                var yScale = img.naturalHeight / container.offsetHeight;
-                var eventX = event.pageX - container.offsetLeft,
+                var xScale = img.naturalWidth / container.offsetWidth,
+                    yScale = img.naturalHeight / container.offsetHeight,
+                    eventX = event.pageX - container.offsetLeft,
                     eventY = event.pageY - container.offsetTop,
                     target = getHit(eventX * xScale, eventY * yScale);
+
                 if(target) {
-                    if (_previousPoint != target) {
-                        _previousPoint = target;
-                        tooltip.innerHTML = target.title;
-                        tooltip.className = "tooltip in";
-                    }
+                    tooltip.innerHTML = target.title;
+                    tooltip.className = "tooltip in";
                     tooltip.style.left = (eventX + 16) + "px";
                     tooltip.style.top = (eventY + 16) + "px";
                 } else {
                     tooltip.className = "tooltip";
-                    _previousPoint = null;
                 }
 
             });
