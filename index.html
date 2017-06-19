@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+<head>
+<title>Tooltip example</title>
+<style>
+body {
+    font-family: sans-serif;
+}
+#tooltip {
+    position: absolute;
+    background: #111;
+    color: white;
+    border-radius: .25rem;
+    padding: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+#tooltip.in {
+    opacity: 0.9;
+}
+#tooltip-container {
+    position: relative;
+}
+#test1 {
+    position: absolute;
+    left: 0px;
+    top: 20px;
+    border-radius: 50%;
+    width: 300px;
+    height: 300px;
+    border: 1px solid black;
+}
+#test2 {
+    position: absolute;
+    left: 300px;
+    top: 50px;
+    width: 200px;
+    height: 250px;
+    border: 1px solid black;
+}
+#test3 {
+    position: absolute;
+    left: 550px;
+    top: 0px;
+    border-radius: 50%;
+    width: 400px;
+    height: 400px;
+    border: 1px solid black;
+}
+#test4 {
+    position: absolute;
+    left: 1050px;
+    top: 25px;
+    height: 450px;
+    width: 300px;
+    border: 1px solid black;
+}
+</style>
+</head>
+<body>
+<h1>Tooltip demonstration</h1>
+<div id="tooltip-container">
+    <img src="./students1.jpg" />
+    <div id="tooltip"></div>
+    <div id="test1"></div>
+    <div id="test2"></div>
+    <div id="test3"></div>
+    <div id="test4"></div>
+</div>
+<script>
+(function(){
+    var targets = [
+        { type: "circle", cx: 150, cy: 170, r: 150, title: "This is the:<br>Teacher" },
+        { type: "rectangle", x: 300, y: 50, h: 250, w: 200, title: "Student 1" },
+        { type: "circle", cx: 750, cy: 200, r: 200, title: "Student 2" },
+        { type: "polygon", points: [1050, 25, 1350, 25, 1350, 475, 1050, 475], title: "Student 3" },
+    ];
+    var _previousPoint;
+    var tooltip = document.getElementById('tooltip');
+    var container = document.getElementById('tooltip-container');
+    if(tooltip && container) {
+        container.addEventListener("mousemove", function (event) {
+            var eventX = event.pageX - container.offsetLeft,
+                eventY = event.pageY - container.offsetTop,
+                target = getHit(eventX, eventY);
+            if(target) {
+                if (_previousPoint != target) {
+                    _previousPoint = target;
+                    tooltip.innerHTML = target.title;
+                    tooltip.className = "in";
+                }
+                tooltip.style.top = (eventY + 16) + "px";
+                tooltip.style.left = (eventX + 16) + "px";
+            } else {
+                tooltip.className = "";
+                _previousPoint = null;
+            }
+
+        });
+    }
+    
+    function getHit(x, y){
+        var out;
+        // Array.some stops as soon as you return true
+        targets.some(function (t) {
+            if (t.type == "circle") {
+                if (Math.pow(t.cx - x, 2) + Math.pow(t.cy - y, 2) < Math.pow(t.r, 2)){
+                    out = t;
+                    return true;
+                }
+            } else if (t.type == "rectangle") {
+                if (x > t.x && x <= (t.x + t.w) && y > t.y && y <= (t.y + t.h)){
+                    out = t;
+                    return true;
+                }
+            } else if (t.type == "polygon") {
+                var p = t.points;
+                if (p.length < 6) {
+                    console.warning("Invlaid polygon found: " + t.title);
+                    return;
+                }
+                if (p.length % 2 != 0) {
+                    p.length -= 1;
+                }
+                var l = p.length;
+                var inside = true;
+                for(var i = 0; i < l; i += 2) {
+                    var x1 = p[i+0];
+                    var y1 = p[i+1];
+                    var x2 = p[i+2];
+                    var y2 = p[i+3];
+                    if (((x2 - x1)*(y - y1) - (y2 - y1) * (x - x1)) < 0){
+                        inside = false;
+                        break;
+                    }
+                }
+                if (inside) {
+                    // Special case to close polygon
+                    var x1 = p[l-2];
+                    var y1 = p[l-1];
+                    var x2 = p[0];
+                    var y2 = p[1];
+                    if (((x2 - x1)*(y - y1) - (y2 - y1) * (x - x1)) < 0){
+                        inside = false;
+                    }
+                }
+                if (inside) {
+                    out = t;
+                }
+                return inside;
+            }
+        });
+        return out;
+    }
+}());
+</script>
+</body>
+</html>
