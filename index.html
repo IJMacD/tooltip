@@ -6,7 +6,17 @@
 body {
     font-family: sans-serif;
 }
-#tooltip {
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+}
+.tooltip-container {
+    position: relative;
+}
+.tooltip-container img {
+    max-width: 100%;
+}
+.tooltip {
     position: absolute;
     background: #111;
     color: white;
@@ -15,11 +25,8 @@ body {
     opacity: 0;
     transition: opacity 0.25s;
 }
-#tooltip.in {
+.tooltip.in {
     opacity: 0.9;
-}
-#tooltip-container {
-    position: relative;
 }
 #test1 {
     position: absolute;
@@ -59,13 +66,9 @@ body {
 </head>
 <body>
 <h1>Tooltip demonstration</h1>
-<div id="tooltip-container">
+<div id="demo1" class="tooltip-container">
     <img src="./students1.jpg" />
-    <div id="tooltip"></div>
-    <div id="test1"></div>
-    <div id="test2"></div>
-    <div id="test3"></div>
-    <div id="test4"></div>
+    <div class="tooltip"></div>
 </div>
 <script>
 (function(){
@@ -73,84 +76,104 @@ body {
         { type: "circle", cx: 150, cy: 170, r: 150, title: "This is the:<br>Teacher" },
         { type: "rectangle", x: 300, y: 50, h: 250, w: 200, title: "Student 1" },
         { type: "circle", cx: 750, cy: 200, r: 200, title: "Student 2" },
-        { type: "polygon", points: [1050, 25, 1350, 25, 1350, 475, 1050, 475], title: "Student 3" },
+        { type: "polygon", points: [1050, 25, 1350, 25, 1450, 250, 1350, 475, 1050, 475, 950, 250], title: "Student 3" },
     ];
-    var _previousPoint;
-    var tooltip = document.getElementById('tooltip');
-    var container = document.getElementById('tooltip-container');
-    if(tooltip && container) {
-        container.addEventListener("mousemove", function (event) {
-            var eventX = event.pageX - container.offsetLeft,
-                eventY = event.pageY - container.offsetTop,
-                target = getHit(eventX, eventY);
-            if(target) {
-                if (_previousPoint != target) {
-                    _previousPoint = target;
-                    tooltip.innerHTML = target.title;
-                    tooltip.className = "in";
+
+    var demo1 = document.getElementById('demo1');
+
+    tooltip(demo1, targets);
+
+    function tooltip (container, targets) {
+        if (!container || !container.querySelector) {
+            return;
+        }
+
+        var _previousPoint;
+        var tooltip = container.querySelector('.tooltip');
+        var img = container.querySelector('img');
+
+        if(tooltip && img) {
+            container.addEventListener("mousemove", function (event) {
+                var xScale = img.naturalWidth / container.offsetWidth;
+                var yScale = img.naturalHeight / container.offsetHeight;
+                var eventX = event.pageX - container.offsetLeft,
+                    eventY = event.pageY - container.offsetTop,
+                    target = getHit(eventX * xScale, eventY * yScale);
+                if(target) {
+                    if (_previousPoint != target) {
+                        _previousPoint = target;
+                        tooltip.innerHTML = target.title;
+                        tooltip.className = "tooltip in";
+                    }
+                    tooltip.style.left = (eventX + 16) + "px";
+                    tooltip.style.top = (eventY + 16) + "px";
+                } else {
+                    tooltip.className = "tooltip";
+                    _previousPoint = null;
                 }
-                tooltip.style.top = (eventY + 16) + "px";
-                tooltip.style.left = (eventX + 16) + "px";
-            } else {
-                tooltip.className = "";
-                _previousPoint = null;
+
+            });
+        }
+
+        function getHit (x, y){
+            var out;
+            // Array.some stops as soon as you return true
+            targets.some(function (t) {
+                if (t.type == "circle" && inCircle(x, y, t)
+                || t.type == "rectangle" && inRectangle(x, y, t)
+                || t.type == "polygon" && inPolygon(x, y, t) ){
+                    out = t;
+                    return true;
+                }
+            });
+            return out;
+        }
+
+        function inCircle (x, y, t) {
+            return Math.pow(t.cx - x, 2) + Math.pow(t.cy - y, 2) < Math.pow(t.r, 2);
+        }
+
+        function inRectangle (x, y, t) {
+            return x > t.x && x <= (t.x + t.w) && y > t.y && y <= (t.y + t.h);
+        }
+
+        function inPolygon (x, y, t) {
+            var p = t.points;
+
+            if (p.length < 6) {
+                console.warning("Invlaid polygon found: " + t.title);
+                return false;
             }
 
-        });
-    }
-    
-    function getHit(x, y){
-        var out;
-        // Array.some stops as soon as you return true
-        targets.some(function (t) {
-            if (t.type == "circle") {
-                if (Math.pow(t.cx - x, 2) + Math.pow(t.cy - y, 2) < Math.pow(t.r, 2)){
-                    out = t;
-                    return true;
-                }
-            } else if (t.type == "rectangle") {
-                if (x > t.x && x <= (t.x + t.w) && y > t.y && y <= (t.y + t.h)){
-                    out = t;
-                    return true;
-                }
-            } else if (t.type == "polygon") {
-                var p = t.points;
-                if (p.length < 6) {
-                    console.warning("Invlaid polygon found: " + t.title);
-                    return;
-                }
-                if (p.length % 2 != 0) {
-                    p.length -= 1;
-                }
-                var l = p.length;
-                var inside = true;
-                for(var i = 0; i < l; i += 2) {
-                    var x1 = p[i+0];
-                    var y1 = p[i+1];
-                    var x2 = p[i+2];
-                    var y2 = p[i+3];
-                    if (((x2 - x1)*(y - y1) - (y2 - y1) * (x - x1)) < 0){
-                        inside = false;
-                        break;
-                    }
-                }
-                if (inside) {
-                    // Special case to close polygon
-                    var x1 = p[l-2];
-                    var y1 = p[l-1];
-                    var x2 = p[0];
-                    var y2 = p[1];
-                    if (((x2 - x1)*(y - y1) - (y2 - y1) * (x - x1)) < 0){
-                        inside = false;
-                    }
-                }
-                if (inside) {
-                    out = t;
-                }
-                return inside;
+            if (p.length % 2 != 0) {
+                p.length -= 1;
             }
-        });
-        return out;
+
+            var l = p.length;
+
+            for(var i = 0; i < l; i += 2) {
+                var x1 = p[i+0];
+                var y1 = p[i+1];
+                var x2 = p[i+2];
+                var y2 = p[i+3];
+
+                if (((x2 - x1)*(y - y1) - (y2 - y1) * (x - x1)) < 0){
+                    return false;
+                }
+            }
+
+            // Special case to close polygon
+            var x1 = p[l-2];
+            var y1 = p[l-1];
+            var x2 = p[0];
+            var y2 = p[1];
+
+            if (((x2 - x1)*(y - y1) - (y2 - y1) * (x - x1)) < 0){
+                return false;
+            }
+
+            return true;
+        }
     }
 }());
 </script>
