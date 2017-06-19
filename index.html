@@ -56,7 +56,9 @@ body {
         var img = container.querySelector('img');
 
         if(tooltip && img) {
-            container.addEventListener("mousemove", function (event) {
+            container.addEventListener("mousemove", handleEvent);
+            container.addEventListener("touch", handleEvent);
+            function handleEvent (event) {
                 var xScale = img.naturalWidth / container.offsetWidth,
                     yScale = img.naturalHeight / container.offsetHeight,
                     eventX = event.pageX - container.offsetLeft,
@@ -72,7 +74,7 @@ body {
                     tooltip.className = "tooltip";
                 }
 
-            });
+            }
         }
 
         function getHit (x, y){
