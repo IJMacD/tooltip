@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+<title>Tooltip example</title>
+<style>
+body {
+    font-family: sans-serif;
+}
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+}
+.tooltip-container {
+    position: relative;
+}
+img {
+    max-width: 100%;
+}
+svg {
+    position: absolute;
+    top: 0;
+}
+circle {
+    fill: white;
+}
+.pupil {
+    fill: black;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Welcome to i-Learner</h1>
+    <div id="demo1" class="tooltip-container">
+        <img src="./students1.jpg" />
+        <svg id="overlay" width="100%" height="100%" viewbox="0 0 1500 500"></svg>
+    </div>
+</div>
+<script>
+(function(){
+    var eyes = [
+        { cx: 340, cy: 110, r: 15 },
+        { cx: 450, cy: 110, r: 15 },
+        { cx: 700, cy: 185, r: 12 },
+        { cx: 800, cy: 175, r: 12 },
+        { cx: 1130, cy: 300, r: 15 },
+        { cx: 1240, cy: 290, r: 15 },
+    ];
+    
+    makeEyes(document.getElementById('overlay'), eyes);
+
+    function makeEyes(svg, eyes) {
+        eyes.forEach(function (eye) {
+            var NS = "http://www.w3.org/2000/svg";
+            var g = document.createElementNS(NS, "g");
+            g.setAttribute("transform", "translate(" + eye.cx + ", " + eye.cy + ") scale(" + eye.r + ")");
+            var circle = document.createElementNS(NS, "circle");
+            circle.setAttribute("cx", 0);
+            circle.setAttribute("cy", 0);
+            circle.setAttribute("r", 2);
+            g.appendChild(circle);
+            var pupil = document.createElementNS(NS, "circle");
+            pupil.setAttribute("cx", 0);
+            pupil.setAttribute("cy", 0);
+            pupil.setAttribute("r", 0.5);
+            pupil.setAttribute("class", "pupil");
+            g.appendChild(pupil);
+            svg.appendChild(g);
+            
+            eye.pupil = pupil;
+        });
+    }
+    
+    document.addEventListener("mousemove", function (e) {
+        var mouseX = e.pageX,
+            mouseY = e.pageY;
+            
+        eyes.forEach(function(eye) {
+            var theta = Math.atan2(mouseX - eye.cx, mouseY - eye.cy);
+            eye.pupil.setAttribute("cx", Math.sin(theta));
+            eye.pupil.setAttribute("cy", Math.cos(theta));
+        });
+    });
+}());
+</script>
+</body>
+</html>
